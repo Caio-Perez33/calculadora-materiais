@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Buscar Orçamentos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7fb; margin: 0; color: #1f2937; }
+        header { background: #163b6d; color: white; padding: 24px 40px; }
+        main { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+        .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 14px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; }
+        input { width: 100%; box-sizing: border-box; border: 1px solid #c7d2fe; border-radius: 8px; padding: 10px; font-size: 14px; }
+        .btn { border: none; border-radius: 8px; padding: 11px 18px; margin: 8px 8px 0 0; cursor: pointer; font-weight: bold; }
+        .primary { background: #2563eb; color: white; }
+        .secondary { background: #e0e7ff; color: #1e3a8a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { border-bottom: 1px solid #e5e7eb; padding: 9px; text-align: left; }
+        th { background: #eef2ff; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</h:head>
+<h:body>
+    <header>
+        <h1>Consulta de Orçamentos</h1>
+        <p>Busca por número do orçamento ou nome do usuário</p>
+    </header>
+
+    <main>
+        <h:form id="formBusca">
+            <div class="card">
+                <h:messages globalOnly="true" />
+                <div class="grid">
+                    <div>
+                        <label>Número do orçamento</label>
+                        <h:inputText value="#{orcamentoBean.numeroBusca}" />
+                        <h:commandButton value="Buscar por número" action="#{orcamentoBean.buscarPorNumero}" styleClass="btn primary" />
+                    </div>
+                    <div>
+                        <label>Nome do usuário</label>
+                        <h:inputText value="#{orcamentoBean.nomeBusca}" />
+                        <h:commandButton value="Buscar por nome" action="#{orcamentoBean.buscarPorNome}" styleClass="btn primary" />
+                        <h:commandButton value="Listar todos" action="#{orcamentoBean.listarTodos}" styleClass="btn secondary" />
+                    </div>
+                </div>
+                <h:link outcome="index" value="Voltar para gerar orçamento" styleClass="btn secondary" />
+            </div>
+
+            <div class="card">
+                <h2>Resultados</h2>
+                <h:dataTable value="#{orcamentoBean.resultadosBusca}" var="orc" rendered="#{not empty orcamentoBean.resultadosBusca}">
+                    <h:column>
+                        <f:facet name="header">Número</f:facet>
+                        <h:outputText value="#{orc.numeroOrcamento}" />
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Usuário</f:facet>
+                        <h:outputText value="#{orc.nomeUsuario}" />
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Concreto</f:facet>
+                        <h:outputText value="#{orc.volumeConcretoM3}" /> m³
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Tijolos</f:facet>
+                        <h:outputText value="#{orc.quantidadeTijolos}" />
+                    </h:column>
+                    <h:column>
+                        <f:facet name="header">Total</f:facet>
+                        R$ <h:outputText value="#{orc.valorTotal}"><f:convertNumber minFractionDigits="2" maxFractionDigits="2" /></h:outputText>
+                    </h:column>
+                </h:dataTable>
+                <h:panelGroup rendered="#{empty orcamentoBean.resultadosBusca}">
+                    <p>Nenhum orçamento listado ainda.</p>
+                </h:panelGroup>
+            </div>
+        </h:form>
+    </main>
+</h:body>
+</html>

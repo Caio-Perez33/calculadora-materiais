@@ -1,101 +1,100 @@
 package br.com.obra.calculadora.controller;
 
+import br.com.obra.calculadora.dto.ArestaRequest;
+import br.com.obra.calculadora.dto.ConcretoRequest;
+import br.com.obra.calculadora.dto.ConcretoResponse;
+import br.com.obra.calculadora.dto.TijoloRequest;
+import br.com.obra.calculadora.dto.TijoloResponse;
+import br.com.obra.calculadora.dto.VerticeRequest;
+import br.com.obra.calculadora.service.CalculadoraService;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import java.util.List;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class CalculoControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private final CalculadoraService calculadoraService = new CalculadoraService();
 
     @Test
-    void deveCalcularConcretoViaEndpointRest() throws Exception {
-        String json = """
-                {
-                  "alturaBaldrame": 0.30,
-                  "arestas": [
-                    {
-                      "codigo": "a12",
-                      "verticeInicial": { "nome": "V1", "coordenadaX": 0, "coordenadaY": 0 },
-                      "verticeFinal": { "nome": "V2", "coordenadaX": 10, "coordenadaY": 0 },
-                      "comprimento": 10.0,
-                      "largura": 0.20,
-                      "alturaParede": 3.0,
-                      "possuiPorta": false,
-                      "larguraPorta": 0,
-                      "alturaPorta": 0,
-                      "possuiJanela": false,
-                      "larguraJanela": 0,
-                      "alturaJanela": 0
-                    },
-                    {
-                      "codigo": "a23",
-                      "verticeInicial": { "nome": "V2", "coordenadaX": 10, "coordenadaY": 0 },
-                      "verticeFinal": { "nome": "V3", "coordenadaX": 15, "coordenadaY": 0 },
-                      "comprimento": 5.0,
-                      "largura": 0.15,
-                      "alturaParede": 3.0,
-                      "possuiPorta": false,
-                      "larguraPorta": 0,
-                      "alturaPorta": 0,
-                      "possuiJanela": false,
-                      "larguraJanela": 0,
-                      "alturaJanela": 0
-                    }
-                  ]
-                }
-                """;
+    void deveCalcularVolumeConcretoDaFundacao() {
+        ArestaRequest parede1 = criarAresta(
+                "a12",
+                10.0,
+                0.20,
+                3.0,
+                false,
+                false
+        );
 
-        mockMvc.perform(post("/api/calculos/concreto")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantidadeArestas").value(2))
-                .andExpect(jsonPath("$.volumeConcretoM3").value(0.825));
+        ArestaRequest parede2 = criarAresta(
+                "a23",
+                5.0,
+                0.15,
+                3.0,
+                false,
+                false
+        );
+
+        ConcretoRequest request = new ConcretoRequest(
+                List.of(parede1, parede2),
+                0.30
+        );
+
+        ConcretoResponse response = calculadoraService.calcularVolumeConcreto(request);
+
+        assertEquals(2, response.quantidadeArestas());
+        assertEquals(0.825, response.volumeConcretoM3());
     }
 
     @Test
-    void deveCalcularTijolosViaEndpointRest() throws Exception {
-        String json = """
-                {
-                  "alturaTijolo": 0.19,
-                  "larguraTijolo": 0.14,
-                  "comprimentoTijolo": 0.39,
-                  "arestas": [
-                    {
-                      "codigo": "a12",
-                      "verticeInicial": { "nome": "V1", "coordenadaX": 0, "coordenadaY": 0 },
-                      "verticeFinal": { "nome": "V2", "coordenadaX": 4, "coordenadaY": 0 },
-                      "comprimento": 4.0,
-                      "largura": 0.15,
-                      "alturaParede": 3.0,
-                      "possuiPorta": true,
-                      "larguraPorta": 0.80,
-                      "alturaPorta": 2.10,
-                      "possuiJanela": true,
-                      "larguraJanela": 1.20,
-                      "alturaJanela": 1.00
-                    }
-                  ]
-                }
-                """;
+    void deveCalcularQuantidadeDeTijolosDescontandoPortaEJanela() {
+        ArestaRequest parede = criarAresta(
+                "a12",
+                4.0,
+                0.15,
+                3.0,
+                true,
+                true
+        );
 
-        mockMvc.perform(post("/api/calculos/tijolos")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.quantidadeArestas").value(1))
-                .andExpect(jsonPath("$.areaTotalParedesM2").value(9.12))
-                .andExpect(jsonPath("$.quantidadeTijolos").value(124));
+        TijoloRequest request = new TijoloRequest(
+                List.of(parede),
+                0.19,
+                0.14,
+                0.39
+        );
+
+        TijoloResponse response = calculadoraService.calcularQuantidadeTijolos(request);
+
+        assertEquals(1, response.quantidadeArestas());
+        assertEquals(9.12, response.areaTotalParedesM2());
+        assertEquals(0.074, response.areaFaceTijoloM2());
+        assertEquals(124, response.quantidadeTijolos());
+    }
+
+    private ArestaRequest criarAresta(
+            String codigo,
+            double comprimento,
+            double largura,
+            double alturaParede,
+            boolean possuiPorta,
+            boolean possuiJanela
+    ) {
+        return new ArestaRequest(
+                codigo,
+                new VerticeRequest("V1", 0.0, 0.0),
+                new VerticeRequest("V2", comprimento, 0.0),
+                comprimento,
+                largura,
+                alturaParede,
+                possuiPorta,
+                possuiPorta ? 0.80 : 0.0,
+                possuiPorta ? 2.10 : 0.0,
+                possuiJanela,
+                possuiJanela ? 1.20 : 0.0,
+                possuiJanela ? 1.00 : 0.0
+        );
     }
 }

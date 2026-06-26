@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>Calculadora de Materiais - Orçamento</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f7fb; margin: 0; color: #1f2937; }
+        header { background: #163b6d; color: white; padding: 24px 40px; }
+        main { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 12px; padding: 22px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); }
+        .grid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); gap: 14px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; }
+        input, textarea { width: 100%; box-sizing: border-box; border: 1px solid #c7d2fe; border-radius: 8px; padding: 10px; font-size: 14px; }
+        textarea { min-height: 130px; font-family: Consolas, monospace; }
+        .btn { border: none; border-radius: 8px; padding: 11px 18px; margin: 8px 8px 0 0; cursor: pointer; font-weight: bold; }
+        .primary { background: #2563eb; color: white; }
+        .secondary { background: #e0e7ff; color: #1e3a8a; }
+        .success { background: #16a34a; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { border-bottom: 1px solid #e5e7eb; padding: 9px; text-align: left; }
+        th { background: #eef2ff; }
+        .help { color: #4b5563; font-size: 13px; line-height: 1.45; }
+        .result { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 12px; }
+        .metric { background: #eef6ff; padding: 14px; border-radius: 10px; }
+        .metric b { display: block; color: #163b6d; margin-bottom: 6px; }
+        .messages { margin: 12px 0; }
+        @media (max-width: 800px) { .grid, .result { grid-template-columns: 1fr; } }
+    </style>
+</h:head>
+<h:body>
+    <header>
+        <h1>Calculadora de Materiais para Obra Residencial</h1>
+        <p>Parte 2 - Tela em Jakarta Faces para solicitação de orçamento</p>
+    </header>
+
+    <main>
+        <h:form id="formOrcamento">
+            <div class="card">
+                <h2>Dados do usuário e custos</h2>
+                <h:messages styleClass="messages" globalOnly="true" />
+
+                <div class="grid">
+                    <div>
+                        <label>Nome do usuário/cliente</label>
+                        <h:inputText value="#{orcamentoBean.nomeUsuario}" required="true" />
+                    </div>
+                    <div>
+                        <label>Altura da viga baldrame (m)</label>
+                        <h:inputText value="#{orcamentoBean.alturaBaldrame}" required="true" />
+                    </div>
+                    <div>
+                        <label>Margem de lucro (%)</label>
+                        <h:inputText value="#{orcamentoBean.margemLucroPercentual}" />
+                    </div>
+                    <div>
+                        <label>Valor do concreto por m³ (R$)</label>
+                        <h:inputText value="#{orcamentoBean.valorConcretoPorM3}" />
+                    </div>
+                    <div>
+                        <label>Valor de cada tijolo (R$)</label>
+                        <h:inputText value="#{orcamentoBean.valorTijolo}" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Dimensões do tijolo</h2>
+                <div class="grid">
+                    <div>
+                        <label>Altura do tijolo (m)</label>
+                        <h:inputText value="#{orcamentoBean.alturaTijolo}" required="true" />
+                    </div>
+                    <div>
+                        <label>Largura do tijolo (m)</label>
+                        <h:inputText value="#{orcamentoBean.larguraTijolo}" required="true" />
+                    </div>
+                    <div>
+                        <label>Comprimento do tijolo (m)</label>
+                        <h:inputText value="#{orcamentoBean.comprimentoTijolo}" required="true" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Planta da casa</h2>
+                <p class="help">
+                    Informe uma parede por linha. Formato:<br />
+                    <b>codigo;comprimento;largura;alturaParede;possuiPorta;larguraPorta;alturaPorta;possuiJanela;larguraJanela;alturaJanela</b><br />
+                    Exemplo: <code>a12;10;0.20;3.00;false;0;0;false;0;0</code>
+                </p>
+                <h:inputTextarea value="#{orcamentoBean.textoPlanta}" required="true" />
+                <br />
+                <h:commandButton value="Preencher exemplo" action="#{orcamentoBean.preencherExemplo}" styleClass="btn secondary" />
+                <h:commandButton value="Gerar orçamento" action="#{orcamentoBean.gerarOrcamento}" styleClass="btn primary" />
+                <h:link outcome="orcamentos" value="Buscar orçamentos salvos" styleClass="btn secondary" />
+            </div>
+
+            <h:panelGroup layout="block" styleClass="card" rendered="#{orcamentoBean.resultado != null}">
+                <h2>Resultado do orçamento</h2>
+                <h:panelGroup layout="block" styleClass="result" rendered="#{orcamentoBean.resultado != null}">
+                    <div class="metric"><b>Número</b><h:outputText value="#{orcamentoBean.resultado.numeroOrcamento}" /></div>
+                    <div class="metric"><b>Usuário</b><h:outputText value="#{orcamentoBean.resultado.nomeUsuario}" /></div>
+                    <div class="metric"><b>Volume concreto</b><h:outputText value="#{orcamentoBean.resultado.volumeConcretoM3}" /> m³</div>
+                    <div class="metric"><b>Quantidade tijolos</b><h:outputText value="#{orcamentoBean.resultado.quantidadeTijolos}" /></div>
+                    <div class="metric"><b>Área paredes</b><h:outputText value="#{orcamentoBean.resultado.areaTotalParedesM2}" /> m²</div>
+                    <div class="metric"><b>Custo concreto</b>R$ <h:outputText value="#{orcamentoBean.resultado.custoConcreto}"><f:convertNumber minFractionDigits="2" maxFractionDigits="2" /></h:outputText></div>
+                    <div class="metric"><b>Custo tijolos</b>R$ <h:outputText value="#{orcamentoBean.resultado.custoTijolos}"><f:convertNumber minFractionDigits="2" maxFractionDigits="2" /></h:outputText></div>
+                    <div class="metric"><b>Total com lucro</b>R$ <h:outputText value="#{orcamentoBean.resultado.valorTotal}"><f:convertNumber minFractionDigits="2" maxFractionDigits="2" /></h:outputText></div>
+                </h:panelGroup>
+            </h:panelGroup>
+        </h:form>
+    </main>
+</h:body>
+</html>

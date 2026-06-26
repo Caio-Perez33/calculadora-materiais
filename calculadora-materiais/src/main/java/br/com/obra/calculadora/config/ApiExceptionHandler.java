@@ -33,4 +33,10 @@ public class ApiExceptionHandler {
 
         return new ErroResponse(LocalDateTime.now(), "Erro de validacao", detalhes);
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErroResponse tratarNaoEncontrado(IllegalArgumentException ex) {
+        return new ErroResponse(LocalDateTime.now(), ex.getMessage(), List.of());
+    }
+
 }

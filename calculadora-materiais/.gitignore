@@ -4,3 +4,7 @@ target/
 .vscode/
 *.log
 .DS_Store
+data/
+*.db
+*.mv.db
+*.trace.db
